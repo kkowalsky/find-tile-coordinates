@@ -21,12 +21,6 @@ styles:
         blend: overlay
 
 layers:
-    # tiles:
-    #     data: { source: osm }
-    #     draw:
-    #         outline:
-    #             tile_edges: true
-    #             order: 1000
     earth:
         data: { source: osm }
         draw:
@@ -35,16 +29,9 @@ layers:
                 color: '#ddeeee'
             lines:
                 order: function() { return feature.sort_rank + 1; }
-                tile_edges: true
+                #tile_edges: true
                 width: 2px
                 color: blue
-
-    landuse:
-        data: { source: osm }
-        draw:
-            polygons:
-                order: function() { return feature.sort_rank; }
-                color: '#aaffaa'
     water:
         data: { source: osm }
         draw:
@@ -53,7 +40,7 @@ layers:
                 color: '#88bbee'
             lines:
                 order: function() { return feature.sort_rank + 1; }
-                tile_edges: true
+                #tile_edges: true
                 width: 2px
                 color: blue
 
