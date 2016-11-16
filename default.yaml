@@ -1,0 +1,123 @@
+import:
+    - https://tangrams.github.io/blocks/space/tile-full.yaml
+    - https://tangrams.github.io/blocks/geometry/normal.yaml
+    - https://tangrams.github.io/blocks/generative/random.yaml
+sources:
+    mapzen:
+        type: TopoJSON
+        url: https://tile.mapzen.com/mapzen/vector/v1/all/{z}/{x}/{y}.topojson?api_key=mapzen-QF1osLn
+    square:
+        type: GeoJSON
+        url:  https://gist.githubusercontent.com/patriciogonzalezvivo/824217cb001633ccbc8df1e791472f0a/raw/fa5ceaf8eec57a4dc4df904c8f666305b7c7e191/one_big_square.json
+scene:
+    background:
+      color: [0.871, 0.949, 0.965, 1.00]
+layers:
+    earth:
+        data: { source: mapzen }
+        draw:
+            polygons:
+                order: 100
+                color: [0.835, 0.824, 0.824, 1.00]
+    water:
+        data: { source: mapzen }
+        draw:
+            polygons:
+                color: [0.871, 0.949, 0.965, 1.00]
+                order: 200
+    tiles:
+        data: { source: square}
+        draw:
+            lines:
+                color: [0.831, 0.392, 0.361, 1.00]
+                width: 4px
+                order: 10000
+                tile_edges: true
+    boundaries:
+        data: { source: mapzen}
+        country:
+            filter:
+                all:
+                    - kind: country
+            draw:
+                lines:
+                    color: [0.667, 0.659, 0.659, 1.00]
+                    width: 1px
+                    order: 300
+        states:
+            filter:
+                all:
+                    - $zoom: { min: 5, max: 20 }
+                any:
+                    - kind: region
+            draw:
+                lines:
+                    color: [0.667, 0.659, 0.659, 1.00]
+                    width: 1px
+                    order: 300
+
+    places:
+        data: { source: mapzen}
+        filter: { not: { kind: [neighbourhood] } }
+        countries:
+            filter: { kind: country, population: { min: 3500000 } }
+            draw:
+                text:
+                  text_source: function() { return feature["name:en"] || feature["name"]; }
+                  font:
+                    size: [[3,18px],[4,26px],[5,32px]]
+                    fill: [0.431, 0.627, 0.643, 1.00]
+                    order: 300
+        cities:
+            filter:
+                all:
+                    - kind: locality
+                any:
+                    - { $zoom: [4], population: { min: 2500000 }}
+                    - { $zoom: [5], population: { min: 1500000 } }
+                    - { $zoom: [8], min_zoom < 8, kind_detail: city }
+                    - { $zoom: [9], min_zoom < 9, kind_detail: city }
+                    - { $zoom: [10], min_zoom < 10, kind_detail: city }
+            draw:
+                text:
+                  font:
+                    size: 16px
+                    fill: [0.310, 0.302, 0.302, 1.00]
+styles:
+    grid:
+        mix: space-tile
+        shaders:
+            blocks:
+                global: |
+                    //  Simple Grid
+                    //=============================
+                    float grid(in vec2 st, in float res, in float press){
+                        st = fract(st*res);
+                        return 1.0-(step(press*res,st.x) * step(press*res,st.y));
+                    }
+                    float grid(in vec2 st, in float res){
+                        return grid(st,res,0.005);
+                    }
+                    // GridTile
+                    //=============================
+                    vec3 TileGrid(float res){
+                        vec2 st = getTileCoords().xy *100.*res;
+                        vec3 color = vec3(0.094, 0.094, 0.102);
+                        float press = 0.5+(1.0-fract(u_map_position.z))*0.1;
+                        color += vec3(0.1,0.,0.)*grid(st,0.02,press);
+                        color += vec3(0.5,0.,0.)*grid(st,0.01,press);
+                        color += 0.1*grid(st,0.1,press);
+                        return color;
+                    }
+                    vec3 TileGrid(){ return mix(TileGrid(1.),TileGrid(2.),fract(u_map_position.z)); }
+    tile:
+        base: polygons
+        mix: [grid, generative-random]
+        lighting: false
+        animated: true
+        shaders:
+            blocks:
+                color: |
+                    vec2 st = getTileCoords();
+                    color.rgb = TileGrid();
+                    float zoom = 0.0001+fract(u_map_position.z);

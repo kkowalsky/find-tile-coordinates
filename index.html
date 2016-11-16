@@ -24,12 +24,12 @@
     <div id="map"></div>
     <script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
     <script src="https://mapzen.com/tangram/0.10/tangram.min.js"></script>
-    <!-- <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.3.0"></script> -->
+    <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.3.0"></script>
     <script>
         var map = L.map('map');
 
         var layer = Tangram.leafletLayer({
-            scene: 'empty2.yaml',
+            scene: 'default.yaml',
             attribution: '<a href="https://mapzen.com/tangram" target="_blank">Tangram</a> | &copy; OSM contributors | <a href="https://mapzen.com/" target="_blank">Mapzen</a>'
         });
 
